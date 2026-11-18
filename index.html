@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +8,7 @@
 <title>Intimacy in Transit</title>
 
 <style>
+
 * {
   box-sizing: border-box;
 }
@@ -35,6 +37,7 @@ header {
 #viewer {
   width: 100vw;
   height: 100vh;
+  position: relative;
 }
 
 #viewer canvas {
@@ -42,7 +45,7 @@ header {
   width: 100%;
   height: 100%;
   cursor: grab;
-  touch-action: pan-y;
+  touch-action: none;
 }
 
 #viewer canvas:active {
@@ -85,8 +88,8 @@ footer a {
 footer a:hover {
   color: white;
 }
-</style>
 
+</style>
 
 <script type="importmap">
 {
@@ -98,7 +101,6 @@ footer a:hover {
   }
 }
 </script>
-
 
 </head>
 
@@ -115,9 +117,15 @@ footer a:hover {
 </div>
 
 <footer>
-  <a href="#" onclick="alert('About this spatial fragment.'); return false;">ABOUT</a>
-  <a href="#" onclick="alert('Credits: Scaniverse / SuperSplat / Independent Digital Exhibition.'); return false;">CREDITS</a>
+  <a href="#" onclick="alert('About this spatial fragment.'); return false;">
+    ABOUT
+  </a>
+
+  <a href="#" onclick="alert('Credits: Scaniverse / SuperSplat / Independent Digital Exhibition.'); return false;">
+    CREDITS
+  </a>
 </footer>
+
 
 <script type="module">
 
@@ -128,7 +136,8 @@ import {
   SplatMesh
 } from '@sparkjsdev/spark';
 
-// YOUR NEW CLEANED MODEL
+
+// MODEL URL
 
 const MODEL_URL =
 'https://res.cloudinary.com/kramdp60/raw/upload/v1795039239/chais_bb_clean_sqleij.spz';
@@ -136,17 +145,19 @@ const MODEL_URL =
 const viewer = document.getElementById('viewer');
 const status = document.getElementById('status');
 
+
 async function start() {
 
   try {
 
-    status.textContent = 'INITIALIZING...';
-
     // SCENE
+
+    status.textContent = 'INITIALIZING...';
 
     const scene = new THREE.Scene();
 
     scene.background = new THREE.Color(0x000000);
+
 
     // CAMERA
 
@@ -156,6 +167,7 @@ async function start() {
       0.01,
       10000
     );
+
 
     // RENDERER
 
@@ -174,7 +186,10 @@ async function start() {
 
     viewer.appendChild(renderer.domElement);
 
+
     // SPARK
+
+    status.textContent = 'INITIALIZING SPARK...';
 
     const spark = new SparkRenderer({
       renderer: renderer
@@ -182,7 +197,8 @@ async function start() {
 
     scene.add(spark);
 
-    // LOAD GAUSSIAN SPLAT
+
+    // LOAD MODEL
 
     status.textContent = 'LOADING 3D MODEL...';
 
@@ -194,125 +210,154 @@ async function start() {
 
     await splat.initialized;
 
-    status.textContent = 'PREPARING MODEL...';
+
+    // CENTER MODEL
+
+    status.textContent = 'CENTERING MODEL...';
+
+    const bounds = splat.getBoundingBox();
+
+    const center = bounds.getCenter(
+      new THREE.Vector3()
+    );
+
+    const size = bounds.getSize(
+      new THREE.Vector3()
+    );
 
 
-    
-// CALCULATE THE ACTUAL MODEL CENTER
+    // CREATE CENTRAL PIVOT
 
-splat.updateMatrixWorld(true);
+    const pivot = new THREE.Group();
 
-const bounds = new THREE.Box3().setFromObject(splat);
-
-const center = bounds.getCenter(
-  new THREE.Vector3()
-);
-
-const size = bounds.getSize(
-  new THREE.Vector3()
-);
-
-// CREATE A TRUE CENTRAL PIVOT
-
-const pivot = new THREE.Group();
-
-scene.add(pivot);
-
-// Put the pivot exactly at the model center
-
-pivot.position.copy(center);
-
-// Attach the model while preserving its world position
-
-pivot.attach(splat);
-
-// CAMERA
-
-const maxDimension = Math.max(
-  size.x,
-  size.y,
-  size.z
-);
-
-const distance = Math.max(
-  maxDimension * 2.5,
-  1
-);
-
-camera.position.copy(center);
-
-camera.position.z += distance;
-
-camera.lookAt(center);
-camera.updateProjectionMatrix();
+    scene.add(pivot);
 
 
-// HORIZONTAL ROTATION ONLY
+    // MOVE MODEL TO ITS CENTER
 
-let dragging = false;
-let previousX = 0;
+    splat.position.set(
+      -center.x,
+      -center.y,
+      -center.z
+    );
 
-const canvas = renderer.domElement;
+    pivot.add(splat);
 
-canvas.addEventListener('pointerdown', (e) => {
-  dragging = true;
-  previousX = e.clientX;
-  canvas.setPointerCapture(e.pointerId);
-});
+    pivot.position.set(0, 0, 0);
 
-canvas.addEventListener('pointerup', () => {
-  dragging = false;
-});
 
-canvas.addEventListener('pointercancel', () => {
-  dragging = false;
-});
+    // CAMERA POSITION
 
-canvas.addEventListener('pointermove', (e) => {
+    const maxDimension = Math.max(
+      size.x,
+      size.y,
+      size.z
+    );
 
-  if (!dragging) return;
+    const distance = Math.max(
+      maxDimension * 2.5,
+      1
+    );
 
-  const delta = e.clientX - previousX;
+    camera.position.set(
+      0,
+      0,
+      distance
+    );
 
-  pivot.rotation.y += delta * 0.005;
+    camera.lookAt(0, 0, 0);
 
-  previousX = e.clientX;
+    camera.updateProjectionMatrix();
 
-});
+
+    // HORIZONTAL ROTATION ONLY
+
+    let dragging = false;
+    let previousX = 0;
+
+    const canvas = renderer.domElement;
+
+
+    canvas.addEventListener('pointerdown', (e) => {
+
+      dragging = true;
+
+      previousX = e.clientX;
+
+      canvas.setPointerCapture(e.pointerId);
+
+    });
+
+
+    canvas.addEventListener('pointerup', () => {
+
+      dragging = false;
+
+    });
+
+
+    canvas.addEventListener('pointercancel', () => {
+
+      dragging = false;
+
+    });
+
+
+    canvas.addEventListener('pointermove', (e) => {
+
+      if (!dragging) return;
+
+      const delta = e.clientX - previousX;
+
+      pivot.rotation.y += delta * 0.005;
+
+      previousX = e.clientX;
+
+    });
+
 
     // HIDE LOADING MESSAGE
 
     status.style.display = 'none';
 
-    // ANIMATION
+
+    // AUTOMATIC ROTATION
 
     renderer.setAnimationLoop(() => {
 
       if (!dragging) {
-        splat.rotation.y += 0.0015;
+
+        pivot.rotation.y += 0.0015;
+
       }
 
       renderer.render(scene, camera);
 
     });
 
+
     // RESPONSIVE
 
     window.addEventListener('resize', () => {
 
-      camera.aspect =
-        viewer.clientWidth / viewer.clientHeight;
+      const width = viewer.clientWidth;
+      const height = viewer.clientHeight;
+
+      camera.aspect = width / height;
 
       camera.updateProjectionMatrix();
 
-      renderer.setSize(
-        viewer.clientWidth,
-        viewer.clientHeight
-      );
+      renderer.setSize(width, height);
 
     });
 
-    console.log('CLEANED MODEL LOADED SUCCESSFULLY');
+
+    console.log('MODEL LOADED SUCCESSFULLY');
+
+    console.log('Model center:', center);
+
+    console.log('Model dimensions:', size);
+
 
   } catch (error) {
 
@@ -326,6 +371,7 @@ canvas.addEventListener('pointermove', (e) => {
   }
 
 }
+
 
 start();
 
