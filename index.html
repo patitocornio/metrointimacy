@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Intimacy in Transit</title>
+
+<style>
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: #000;
+  color: white;
+  font-family: Helvetica, Arial, sans-serif;
+  overflow: hidden;
+}
+
+header {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  padding: 30px;
+  text-align: center;
+  font-size: 13px;
+  letter-spacing: 4px;
+  z-index: 2;
+}
+
+#viewer {
+  width: 100vw;
+  height: 100vh;
+}
+
+canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: grab;
+  touch-action: pan-y;
+}
+
+canvas:active { cursor: grabbing; }
+
+#status {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #888;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-align: center;
+  max-width: 85%;
+  line-height: 1.8;
+  z-index: 3;
+  pointer-events: none;
+}
+
+footer {
+  position: absolute;
+  bottom: 25px;
+  right: 30px;
+  display: flex;
+  gap: 25px;
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: #777;
+  z-index: 2;
+}
+
+footer a {
+  color: inherit;
+  text-decoration: none;
+}
+
+footer a:hover { color: white; }
+</style>
+</head>
+
+<body>
+
+<header>INTIMACY IN TRANSIT</header>
+
+<div id="viewer"></div>
+
+<div id="status">INITIALIZING...</div>
+
+<footer>
+  <a href="#" onclick="alert('About this spatial fragment.'); return false;">ABOUT</a>
+  <a href="#" onclick="alert('Credits: Scaniverse / Independent Digital Exhibition.'); return false;">CREDITS</a>
+</footer>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
+    "three/": "https://cdn.jsdelivr.net/npm/three@0.180.0/",
+    "@sparkjsdev/spark": "https://sparkjs.dev/releases/spark/2.4.0/spark.module.js"
+  }
+}
+</script>
+
+<script type="module">
+
+import * as THREE from 'three';
+
+import {
+  SparkRenderer,
+  SplatMesh
+} from '@sparkjsdev/spark';
+
+const MODEL_URL =
+'https://res.cloudinary.com/kramdp60/raw/upload/v1794491467/chais_bb_gk2icx.spz';
+
+const viewer = document.getElementById('viewer');
+const status = document.getElementById('status');
+
+async function start() {
+
+  try {
+
+    status.textContent = 'CREATING SCENE...';
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x000000);
+
+    const camera = new THREE.PerspectiveCamera(
+      50,
+      viewer.clientWidth / viewer.clientHeight,
+      0.01,
+      10000
+    );
+
+    const renderer = new THREE.WebGLRenderer({
+      antialias: true
+    });
+
+    renderer.setPixelRatio(
+      Math.min(window.devicePixelRatio, 2)
+    );
+
+    renderer.setSize(
+      viewer.clientWidth,
+      viewer.clientHeight
+    );
+
+    viewer.appendChild(renderer.domElement);
+
+    status.textContent = 'INITIALIZING SPARK...';
+
+    const spark = new SparkRenderer({
+      renderer
+    });
+
+    scene.add(spark);
+
+    status.textContent = 'DOWNLOADING MODEL...';
+
+    const splat = new SplatMesh({
+      url: MODEL_URL,
+      onProgress: (event) => {
+        if (event.lengthComputable) {
+          const percent = Math.round(
+            event.loaded / event.total * 100
+          );
+          status.textContent = 'LOADING MODEL ' + percent + '%';
+        }
+      }
+    });
+
+    scene.add(splat);
+
+    await splat.initialized;
+
+    status.textContent = 'PREPARING MODEL...';
+
+    // Center the model
+
+    const bounds = splat.getBoundingBox();
+
+    const center = bounds.getCenter(
+      new THREE.Vector3()
+    );
+
+    const size = bounds.getSize(
+      new THREE.Vector3()
+    );
+
+    splat.position.sub(center);
+
+    // Position camera
+
+    const maxDimension = Math.max(
+      size.x,
+      size.y,
+      size.z
+    );
+
+    const distance = Math.max(
+      maxDimension * 2.2,
+      1
+    );
+
+    camera.position.set(0, 0, distance);
+    camera.lookAt(0, 0, 0);
+
+    // Horizontal drag only
+
+    let dragging = false;
+    let previousX = 0;
+
+    const canvas = renderer.domElement;
+
+    canvas.addEventListener('pointerdown', (event) => {
+      dragging = true;
+      previousX = event.clientX;
+      canvas.setPointerCapture(event.pointerId);
+    });
+
+    canvas.addEventListener('pointerup', () => {
+      dragging = false;
+    });
+
+    canvas.addEventListener('pointercancel', () => {
+      dragging = false;
+    });
+
+    canvas.addEventListener('pointermove', (event) => {
+
+      if (!dragging) return;
+
+      const delta = event.clientX - previousX;
+
+      splat.rotation.y += delta * 0.005;
+
+      previousX = event.clientX;
+
+    });
+
+    status.style.display = 'none';
+
+    // Animation
+
+    renderer.setAnimationLoop(() => {
+
+      if (!dragging) {
+        splat.rotation.y += 0.0015;
+      }
+
+      renderer.render(scene, camera);
+
+    });
+
+    // Responsive
+
+    window.addEventListener('resize', () => {
+
+      camera.aspect =
+        viewer.clientWidth / viewer.clientHeight;
+
+      camera.updateProjectionMatrix();
+
+      renderer.setSize(
+        viewer.clientWidth,
+        viewer.clientHeight
+      );
+
+    });
+
+    console.log('SPZ MODEL SUCCESSFULLY LOADED');
+
+  } catch (error) {
+
+    console.error('FULL MODEL ERROR:', error);
+
+    status.style.display = 'block';
+
+    status.textContent =
+      'ERROR: ' + (error.message || String(error));
+
+  }
+
+}
+
+start();
+
+</script>
+
+</body>
+</html>
