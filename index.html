@@ -196,19 +196,27 @@ async function start() {
 
     status.textContent = 'PREPARING MODEL...';
 
-    // CENTER MODEL
+    // CENTER MODEL AND CREATE A CENTRAL PIVOT
 
-    const bounds = splat.getBoundingBox();
+const bounds = splat.getBoundingBox();
 
-    const center = bounds.getCenter(
-      new THREE.Vector3()
-    );
+const center = bounds.getCenter(
+  new THREE.Vector3()
+);
 
-    const size = bounds.getSize(
-      new THREE.Vector3()
-    );
+const size = bounds.getSize(
+  new THREE.Vector3()
+);
 
-    splat.position.sub(center);
+const pivot = new THREE.Group();
+
+scene.add(pivot);
+
+// Move model so its visual center is at 0,0,0
+
+splat.position.sub(center);
+
+pivot.add(splat);
 
     // CAMERA POSITION
 
@@ -231,41 +239,38 @@ async function start() {
 
     camera.lookAt(0, 0, 0);
 
-    // HORIZONTAL ROTATION ONLY
+// HORIZONTAL ROTATION ONLY
 
-    let dragging = false;
-    let previousX = 0;
+let dragging = false;
+let previousX = 0;
 
-    const canvas = renderer.domElement;
+const canvas = renderer.domElement;
 
-    canvas.addEventListener('pointerdown', (e) => {
+canvas.addEventListener('pointerdown', (e) => {
+  dragging = true;
+  previousX = e.clientX;
+  canvas.setPointerCapture(e.pointerId);
+});
 
-      dragging = true;
-      previousX = e.clientX;
+canvas.addEventListener('pointerup', () => {
+  dragging = false;
+});
 
-      canvas.setPointerCapture(e.pointerId);
+canvas.addEventListener('pointercancel', () => {
+  dragging = false;
+});
 
-    });
+canvas.addEventListener('pointermove', (e) => {
 
-    canvas.addEventListener('pointerup', () => {
-      dragging = false;
-    });
+  if (!dragging) return;
 
-    canvas.addEventListener('pointercancel', () => {
-      dragging = false;
-    });
+  const delta = e.clientX - previousX;
 
-    canvas.addEventListener('pointermove', (e) => {
+  pivot.rotation.y += delta * 0.005;
 
-      if (!dragging) return;
+  previousX = e.clientX;
 
-      const delta = e.clientX - previousX;
-
-      splat.rotation.y += delta * 0.005;
-
-      previousX = e.clientX;
-
-    });
+});
 
     // HIDE LOADING MESSAGE
 
