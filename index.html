@@ -11,7 +11,7 @@
 body {
   margin: 0;
   background: #000;
-  color: white;
+  color: #fff;
   font-family: Helvetica, Arial, sans-serif;
   overflow: hidden;
 }
@@ -32,15 +32,16 @@ header {
   height: 100vh;
 }
 
-canvas {
+#viewer canvas {
   display: block;
   width: 100%;
   height: 100%;
   cursor: grab;
-  touch-action: pan-y;
 }
 
-canvas:active { cursor: grabbing; }
+#viewer canvas:active {
+  cursor: grabbing;
+}
 
 #status {
   position: absolute;
@@ -51,7 +52,7 @@ canvas:active { cursor: grabbing; }
   font-size: 11px;
   letter-spacing: 2px;
   text-align: center;
-  max-width: 85%;
+  width: 85%;
   line-height: 1.8;
   z-index: 3;
   pointer-events: none;
@@ -74,7 +75,9 @@ footer a {
   text-decoration: none;
 }
 
-footer a:hover { color: white; }
+footer a:hover {
+  color: white;
+}
 </style>
 </head>
 
@@ -83,8 +86,7 @@ footer a:hover { color: white; }
 <header>INTIMACY IN TRANSIT</header>
 
 <div id="viewer"></div>
-
-<div id="status">INITIALIZING...</div>
+<div id="status">STARTING...</div>
 
 <footer>
   <a href="#" onclick="alert('About this spatial fragment.'); return false;">ABOUT</a>
@@ -95,7 +97,7 @@ footer a:hover { color: white; }
 {
   "imports": {
     "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
-    "three/": "https://cdn.jsdelivr.net/npm/three@0.180.0/",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/",
     "@sparkjsdev/spark": "https://sparkjs.dev/releases/spark/2.4.0/spark.module.js"
   }
 }
@@ -103,37 +105,40 @@ footer a:hover { color: white; }
 
 <script type="module">
 
-import * as THREE from 'three';
-
-import {
-  SparkRenderer,
-  SplatMesh
-} from '@sparkjsdev/spark';
+const status = document.getElementById('status');
+const viewer = document.getElementById('viewer');
 
 const MODEL_URL =
 'https://res.cloudinary.com/kramdp60/raw/upload/v1794491467/chais_bb_gk2icx.spz';
-
-const viewer = document.getElementById('viewer');
-const status = document.getElementById('status');
 
 async function start() {
 
   try {
 
-    status.textContent = 'CREATING SCENE...';
+    status.textContent = 'LOADING THREE.JS...';
+
+    const THREE = await import('three');
+
+    status.textContent = 'LOADING SPARK...';
+
+    const { SparkRenderer, SplatMesh } =
+      await import('@sparkjsdev/spark');
+
+    status.textContent = 'CREATING VIEWER...';
 
     const scene = new THREE.Scene();
+
     scene.background = new THREE.Color(0x000000);
 
     const camera = new THREE.PerspectiveCamera(
       50,
-      viewer.clientWidth / viewer.clientHeight,
+      window.innerWidth / window.innerHeight,
       0.01,
       10000
     );
 
     const renderer = new THREE.WebGLRenderer({
-      antialias: true
+      antialias: false
     });
 
     renderer.setPixelRatio(
@@ -141,21 +146,19 @@ async function start() {
     );
 
     renderer.setSize(
-      viewer.clientWidth,
-      viewer.clientHeight
+      window.innerWidth,
+      window.innerHeight
     );
 
     viewer.appendChild(renderer.domElement);
 
-    status.textContent = 'INITIALIZING SPARK...';
-
     const spark = new SparkRenderer({
-      renderer
+      renderer: renderer
     });
 
     scene.add(spark);
 
-    status.textContent = 'DOWNLOADING MODEL...';
+    status.textContent = 'DOWNLOADING 3D MODEL...';
 
     const splat = new SplatMesh({
       url: MODEL_URL,
@@ -164,7 +167,7 @@ async function start() {
           const percent = Math.round(
             event.loaded / event.total * 100
           );
-          status.textContent = 'LOADING MODEL ' + percent + '%';
+          status.textContent = 'LOADING ' + percent + '%';
         }
       }
     });
@@ -175,7 +178,7 @@ async function start() {
 
     status.textContent = 'PREPARING MODEL...';
 
-    // Center the model
+    // Center model
 
     const bounds = splat.getBoundingBox();
 
@@ -189,7 +192,7 @@ async function start() {
 
     splat.position.sub(center);
 
-    // Position camera
+    // Camera positioning
 
     const maxDimension = Math.max(
       size.x,
@@ -198,24 +201,24 @@ async function start() {
     );
 
     const distance = Math.max(
-      maxDimension * 2.2,
+      maxDimension * 2.5,
       1
     );
 
     camera.position.set(0, 0, distance);
     camera.lookAt(0, 0, 0);
 
-    // Horizontal drag only
+    // Horizontal rotation
 
     let dragging = false;
     let previousX = 0;
 
     const canvas = renderer.domElement;
 
-    canvas.addEventListener('pointerdown', (event) => {
+    canvas.addEventListener('pointerdown', (e) => {
       dragging = true;
-      previousX = event.clientX;
-      canvas.setPointerCapture(event.pointerId);
+      previousX = e.clientX;
+      canvas.setPointerCapture(e.pointerId);
     });
 
     canvas.addEventListener('pointerup', () => {
@@ -226,15 +229,15 @@ async function start() {
       dragging = false;
     });
 
-    canvas.addEventListener('pointermove', (event) => {
+    canvas.addEventListener('pointermove', (e) => {
 
       if (!dragging) return;
 
-      const delta = event.clientX - previousX;
+      const delta = e.clientX - previousX;
 
       splat.rotation.y += delta * 0.005;
 
-      previousX = event.clientX;
+      previousX = e.clientX;
 
     });
 
@@ -257,22 +260,20 @@ async function start() {
     window.addEventListener('resize', () => {
 
       camera.aspect =
-        viewer.clientWidth / viewer.clientHeight;
+        window.innerWidth / window.innerHeight;
 
       camera.updateProjectionMatrix();
 
       renderer.setSize(
-        viewer.clientWidth,
-        viewer.clientHeight
+        window.innerWidth,
+        window.innerHeight
       );
 
     });
 
-    console.log('SPZ MODEL SUCCESSFULLY LOADED');
-
   } catch (error) {
 
-    console.error('FULL MODEL ERROR:', error);
+    console.error('VIEWER ERROR:', error);
 
     status.style.display = 'block';
 
