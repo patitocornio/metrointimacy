@@ -197,56 +197,54 @@ async function start() {
     status.textContent = 'PREPARING MODEL...';
 
 
-    // CENTER MODEL AROUND ITS TRUE MIDDLE
+    
+// CALCULATE THE ACTUAL MODEL CENTER
 
-    const bounds = splat.getBoundingBox();
+splat.updateMatrixWorld(true);
 
-    const center = bounds.getCenter(
-      new THREE.Vector3()
-    );
+const bounds = new THREE.Box3().setFromObject(splat);
 
-    const size = bounds.getSize(
-      new THREE.Vector3()
-    );
+const center = bounds.getCenter(
+  new THREE.Vector3()
+);
 
-    // Create a pivot at the model's center
+const size = bounds.getSize(
+  new THREE.Vector3()
+);
 
-    const pivot = new THREE.Group();
+// CREATE A TRUE CENTRAL PIVOT
 
-    scene.add(pivot);
+const pivot = new THREE.Group();
 
-    // Move the model relative to the pivot
+scene.add(pivot);
 
-    pivot.position.copy(center);
-    splat.position.set(
-      -center.x,
-      -center.y,
-      -center.z
-    );
+// Put the pivot exactly at the model center
 
-    pivot.add(splat);
+pivot.position.copy(center);
 
-    // CAMERA DISTANCE - KEEP YOUR CURRENT SIZE
+// Attach the model while preserving its world position
 
-    const maxDimension = Math.max(
-      size.x,
-      size.y,
-      size.z
-    );
+pivot.attach(splat);
 
-    const distance = Math.max(
-      maxDimension * 2.5,
-      1
-    );
+// CAMERA
 
-    camera.position.set(
-      0,
-      0,
-      distance
-    );
+const maxDimension = Math.max(
+  size.x,
+  size.y,
+  size.z
+);
 
-    camera.lookAt(0, 0, 0);
-    camera.updateProjectionMatrix();
+const distance = Math.max(
+  maxDimension * 2.5,
+  1
+);
+
+camera.position.copy(center);
+
+camera.position.z += distance;
+
+camera.lookAt(center);
+camera.updateProjectionMatrix();
 
 
 // HORIZONTAL ROTATION ONLY
