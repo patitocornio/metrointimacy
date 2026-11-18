@@ -196,29 +196,37 @@ async function start() {
 
     status.textContent = 'PREPARING MODEL...';
 
-    // CENTER MODEL AND CREATE A CENTRAL PIVOT
 
-const bounds = splat.getBoundingBox();
+    // CENTER MODEL AROUND ITS TRUE MIDDLE
 
-const center = bounds.getCenter(
-  new THREE.Vector3()
-);
+    const bounds = splat.getBoundingBox();
 
-const size = bounds.getSize(
-  new THREE.Vector3()
-);
+    const center = bounds.getCenter(
+      new THREE.Vector3()
+    );
 
-const pivot = new THREE.Group();
+    const size = bounds.getSize(
+      new THREE.Vector3()
+    );
 
-scene.add(pivot);
+    // Create a pivot at the model's center
 
-// Move model so its visual center is at 0,0,0
+    const pivot = new THREE.Group();
 
-splat.position.sub(center);
+    scene.add(pivot);
 
-pivot.add(splat);
+    // Move the model relative to the pivot
 
-    // CAMERA POSITION
+    pivot.position.copy(center);
+    splat.position.set(
+      -center.x,
+      -center.y,
+      -center.z
+    );
+
+    pivot.add(splat);
+
+    // CAMERA DISTANCE - KEEP YOUR CURRENT SIZE
 
     const maxDimension = Math.max(
       size.x,
@@ -238,6 +246,8 @@ pivot.add(splat);
     );
 
     camera.lookAt(0, 0, 0);
+    camera.updateProjectionMatrix();
+
 
 // HORIZONTAL ROTATION ONLY
 
