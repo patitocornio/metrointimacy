@@ -3,10 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Intimacy in Transit</title>
 
 <style>
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+}
 
 body {
   margin: 0;
@@ -24,7 +27,9 @@ header {
   text-align: center;
   font-size: 13px;
   letter-spacing: 4px;
+  font-weight: 400;
   z-index: 2;
+  pointer-events: none;
 }
 
 #viewer {
@@ -37,6 +42,7 @@ header {
   width: 100%;
   height: 100%;
   cursor: grab;
+  touch-action: pan-y;
 }
 
 #viewer canvas:active {
@@ -73,69 +79,82 @@ footer {
 footer a {
   color: inherit;
   text-decoration: none;
+  cursor: pointer;
 }
 
 footer a:hover {
   color: white;
 }
 </style>
-</head>
-
-<body>
-
-<header>INTIMACY IN TRANSIT</header>
-
-<div id="viewer"></div>
-<div id="status">STARTING...</div>
-
-<footer>
-  <a href="#" onclick="alert('About this spatial fragment.'); return false;">ABOUT</a>
-  <a href="#" onclick="alert('Credits: Scaniverse / Independent Digital Exhibition.'); return false;">CREDITS</a>
-</footer>
 
 <script type="importmap">
 {
   "imports": {
     "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
-    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/",
+    "three/": "https://cdn.jsdelivr.net/npm/three@0.180.0/",
     "@sparkjsdev/spark": "https://sparkjs.dev/releases/spark/2.4.0/spark.module.js"
   }
 }
 </script>
 
+</head>
+
+<body>
+
+<header>
+  INTIMACY IN TRANSIT
+</header>
+
+<div id="viewer"></div>
+
+<div id="status">
+  LOADING SPATIAL FRAGMENT...
+</div>
+
+<footer>
+  <a href="#" onclick="alert('About this spatial fragment.'); return false;">ABOUT</a>
+  <a href="#" onclick="alert('Credits: Scaniverse / SuperSplat / Independent Digital Exhibition.'); return false;">CREDITS</a>
+</footer>
+
 <script type="module">
 
-const status = document.getElementById('status');
-const viewer = document.getElementById('viewer');
+import * as THREE from 'three';
+
+import {
+  SparkRenderer,
+  SplatMesh
+} from '@sparkjsdev/spark';
+
+// YOUR NEW CLEANED MODEL
 
 const MODEL_URL =
-'https://res.cloudinary.com/kramdp60/raw/upload/v1794491467/chais_bb_gk2icx.spz';
+'https://res.cloudinary.com/kramdp60/raw/upload/v1795039239/chais_bb_clean_sqleij.spz';
+
+const viewer = document.getElementById('viewer');
+const status = document.getElementById('status');
 
 async function start() {
 
   try {
 
-    status.textContent = 'LOADING THREE.JS...';
+    status.textContent = 'INITIALIZING...';
 
-    const THREE = await import('three');
-
-    status.textContent = 'LOADING SPARK...';
-
-    const { SparkRenderer, SplatMesh } =
-      await import('@sparkjsdev/spark');
-
-    status.textContent = 'CREATING VIEWER...';
+    // SCENE
 
     const scene = new THREE.Scene();
 
     scene.background = new THREE.Color(0x000000);
 
+    // CAMERA
+
     const camera = new THREE.PerspectiveCamera(
-      50,
-      window.innerWidth / window.innerHeight,
+      45,
+      viewer.clientWidth / viewer.clientHeight,
       0.01,
       10000
     );
+
+    // RENDERER
 
     const renderer = new THREE.WebGLRenderer({
       antialias: false
@@ -146,11 +165,13 @@ async function start() {
     );
 
     renderer.setSize(
-      window.innerWidth,
-      window.innerHeight
+      viewer.clientWidth,
+      viewer.clientHeight
     );
 
     viewer.appendChild(renderer.domElement);
+
+    // SPARK
 
     const spark = new SparkRenderer({
       renderer: renderer
@@ -158,18 +179,12 @@ async function start() {
 
     scene.add(spark);
 
-    status.textContent = 'DOWNLOADING 3D MODEL...';
+    // LOAD GAUSSIAN SPLAT
+
+    status.textContent = 'LOADING 3D MODEL...';
 
     const splat = new SplatMesh({
-      url: MODEL_URL,
-      onProgress: (event) => {
-        if (event.lengthComputable) {
-          const percent = Math.round(
-            event.loaded / event.total * 100
-          );
-          status.textContent = 'LOADING ' + percent + '%';
-        }
-      }
+      url: MODEL_URL
     });
 
     scene.add(splat);
@@ -178,7 +193,7 @@ async function start() {
 
     status.textContent = 'PREPARING MODEL...';
 
-    // Center model
+    // CENTER MODEL
 
     const bounds = splat.getBoundingBox();
 
@@ -192,7 +207,7 @@ async function start() {
 
     splat.position.sub(center);
 
-    // Camera positioning
+    // CAMERA POSITION
 
     const maxDimension = Math.max(
       size.x,
@@ -205,10 +220,15 @@ async function start() {
       1
     );
 
-    camera.position.set(0, 0, distance);
+    camera.position.set(
+      0,
+      0,
+      distance
+    );
+
     camera.lookAt(0, 0, 0);
 
-    // Horizontal rotation
+    // HORIZONTAL ROTATION ONLY
 
     let dragging = false;
     let previousX = 0;
@@ -216,9 +236,12 @@ async function start() {
     const canvas = renderer.domElement;
 
     canvas.addEventListener('pointerdown', (e) => {
+
       dragging = true;
       previousX = e.clientX;
+
       canvas.setPointerCapture(e.pointerId);
+
     });
 
     canvas.addEventListener('pointerup', () => {
@@ -241,9 +264,11 @@ async function start() {
 
     });
 
+    // HIDE LOADING MESSAGE
+
     status.style.display = 'none';
 
-    // Animation
+    // ANIMATION
 
     renderer.setAnimationLoop(() => {
 
@@ -255,30 +280,32 @@ async function start() {
 
     });
 
-    // Responsive
+    // RESPONSIVE
 
     window.addEventListener('resize', () => {
 
       camera.aspect =
-        window.innerWidth / window.innerHeight;
+        viewer.clientWidth / viewer.clientHeight;
 
       camera.updateProjectionMatrix();
 
       renderer.setSize(
-        window.innerWidth,
-        window.innerHeight
+        viewer.clientWidth,
+        viewer.clientHeight
       );
 
     });
 
+    console.log('CLEANED MODEL LOADED SUCCESSFULLY');
+
   } catch (error) {
 
-    console.error('VIEWER ERROR:', error);
+    console.error('MODEL ERROR:', error);
 
     status.style.display = 'block';
 
     status.textContent =
-      'ERROR: ' + (error.message || String(error));
+      'MODEL FAILED: ' + error.message;
 
   }
 
