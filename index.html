@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -10,9 +9,7 @@
 
 <style>
 
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 body {
   margin: 0;
@@ -35,6 +32,19 @@ header {
   pointer-events: none;
 }
 
+#subtitle {
+  position: absolute;
+  top: 65px;
+  width: 100%;
+  text-align: center;
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: #777;
+  font-weight: 400;
+  z-index: 2;
+  pointer-events: none;
+}
+
 #viewer {
   width: 100vw;
   height: 100vh;
@@ -49,11 +59,7 @@ header {
   touch-action: none;
 }
 
-#viewer canvas:active {
-  cursor: grabbing;
-}
-
-/* LOADING MESSAGE */
+#viewer canvas:active { cursor: grabbing; }
 
 #status {
   position: absolute;
@@ -70,8 +76,6 @@ header {
   pointer-events: none;
 }
 
-/* CAROUSEL ARROWS */
-
 .arrow {
   position: absolute;
   top: 50%;
@@ -87,19 +91,9 @@ header {
   transition: color 0.3s ease;
 }
 
-.arrow:hover {
-  color: white;
-}
-
-#previous {
-  left: 15px;
-}
-
-#next {
-  right: 15px;
-}
-
-/* MODEL COUNTER */
+.arrow:hover { color: white; }
+#previous { left: 15px; }
+#next { right: 15px; }
 
 #model-counter {
   position: absolute;
@@ -111,8 +105,6 @@ header {
   z-index: 2;
   pointer-events: none;
 }
-
-/* FOOTER */
 
 footer {
   position: absolute;
@@ -126,50 +118,233 @@ footer {
   z-index: 2;
 }
 
-footer a {
-  color: inherit;
-  text-decoration: none;
+footer a { color: inherit; text-decoration: none; cursor: pointer; }
+footer a { transition: color 0.3s ease; }
+footer a:hover,
+footer a.active { color: white; }
+
+/* ABOUT / CREDITS: everything fades except the footer */
+body.info #viewer,
+body.info header,
+body.info #subtitle,
+body.info #tags,
+body.info .arrow,
+body.info #model-counter {
+  opacity: 0;
+  pointer-events: none;
+}
+
+body.info footer { z-index: 22; }
+
+/* ==========================================
+   ANECDOTE TAGS (dot + 45° line + title)
+   ========================================== */
+
+#tags {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.tag {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  display: none;
+}
+
+.tag.on { display: block; }
+
+.dot {
+  position: absolute;
+  left: -3px;
+  top: -3px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #fff;
+}
+
+.diag {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 57px;            /* 40px * sqrt(2) = 40px up, 40px across */
+  height: 1px;
+  background: rgba(255,255,255,0.8);
+  transform-origin: 0 0;
+  transform: rotate(-45deg);
+}
+
+.tag.left .diag { transform: rotate(-135deg); }
+.tag.down .diag { transform: rotate(45deg); }
+.tag.down.left .diag { transform: rotate(135deg); }
+
+.title {
+  position: absolute;
+  left: 40px;
+  top: -40px;
+  transform: translateY(-100%);
+  width: 230px;
+  padding: 0 4px 5px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.8);
+  font-size: 11px;
+  line-height: 1.5;
+  letter-spacing: 1.5px;
+  color: #fff;
+  text-align: left;
   cursor: pointer;
+  pointer-events: auto;
+  transition: color 0.3s ease, border-color 0.3s ease;
 }
 
-footer a:hover {
-  color: white;
+.tag.left .title {
+  left: -40px;
+  transform: translate(-100%, -100%);
+  text-align: right;
+  padding: 0 0 5px 4px;
 }
 
-/* MOBILE */
+.tag.down .title {
+  top: 40px;
+  transform: none;
+  border-bottom: none;
+  border-top: 1px solid rgba(255,255,255,0.8);
+  padding: 5px 4px 0 0;
+}
+
+.tag.down.left .title {
+  left: -40px;
+  transform: translateX(-100%);
+  padding: 5px 0 0 4px;
+}
+
+.tag .title:hover { color: #aaa; border-color: #aaa; }
+
+/* ==========================================
+   FADE OUT + READER
+   ========================================== */
+
+#viewer, header, #subtitle, #tags, .arrow, #model-counter, footer {
+  transition: opacity 0.7s ease;
+}
+
+body.reading #viewer,
+body.reading header,
+body.reading #subtitle,
+body.reading #tags,
+body.reading .arrow,
+body.reading #model-counter,
+body.reading footer {
+  opacity: 0;
+  pointer-events: none;
+}
+
+#reader {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: none;
+  overflow-y: auto;
+  padding: 90px 30px 80px;
+}
+
+#reader.open { display: block; }
+
+#reader-inner {
+  max-width: 620px;
+  margin: 0 auto;
+}
+
+#r-title {
+  width: 230px;
+  margin: 0 0 40px;
+  padding: 0 4px 5px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.8);
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: 1.5px;
+  color: #fff;
+}
+
+#r-title.moving { transition: transform 1s cubic-bezier(.6,.05,.2,1); }
+
+#r-text {
+  font-size: 11px;
+  line-height: 1.9;
+  letter-spacing: 1.5px;
+  color: #fff;
+  opacity: 0;
+  transition: opacity 1s ease;
+}
+
+#r-text p { margin: 0 0 1.2em; }
+#r-text.show { opacity: 1; }
+
+/* ABOUT / CREDITS text: same font, size and spacing as the footer links */
+#r-text.info {
+  font-family: Helvetica, Arial, sans-serif;
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 1px;
+  line-height: 1.9;
+  color: #777;
+  -webkit-font-smoothing: antialiased;
+}
+
+#close {
+  position: fixed;
+  top: 22px;
+  right: 24px;
+  z-index: 21;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 0;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.6s ease;
+}
+
+#close::before,
+#close::after {
+  content: "";
+  position: absolute;
+  left: 11px;
+  top: 17px;
+  width: 14px;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.4;
+  transition: opacity 0.3s ease;
+}
+
+#close::before { transform: rotate(45deg); }
+#close::after { transform: rotate(-45deg); }
+#close:hover::before,
+#close:hover::after { opacity: 0.9; }
+
+#close.show { opacity: 1; pointer-events: auto; }
 
 @media (max-width: 600px) {
-
-  header {
-    padding: 25px 10px;
-    font-size: 11px;
-    letter-spacing: 3px;
-  }
-
-  #previous {
-    left: 0;
-  }
-
-  #next {
-    right: 0;
-  }
-
-  .arrow {
-    font-size: 25px;
-    padding: 15px;
-  }
-
-  footer {
-    right: 20px;
-    bottom: 22px;
-    gap: 15px;
-  }
-
-  #model-counter {
-    left: 20px;
-    bottom: 25px;
-  }
-
+  header { padding: 25px 10px; font-size: 11px; letter-spacing: 3px; }
+  #previous { left: 0; }
+  #next { right: 0; }
+  .arrow { font-size: 25px; padding: 15px; }
+  footer { right: 20px; bottom: 22px; gap: 15px; }
+  #model-counter { left: 20px; bottom: 25px; }
+  .title, #r-title { width: 160px; font-size: 10px; letter-spacing: 1px; }
+  #r-text { font-size: 10px; letter-spacing: 1px; }
+  #reader { padding: 80px 22px 60px; }
 }
 
 </style>
@@ -189,59 +364,220 @@ footer a:hover {
 
 <body>
 
-<header>
-  INTIMACY IN TRANSIT
-</header>
+<header>INTIMACY IN TRANSIT</header>
+
+<div id="subtitle">discover the 3D models and turn them around</div>
 
 <div id="viewer"></div>
 
-<div id="status">
-  LOADING SPATIAL FRAGMENTS...
-</div>
+<div id="tags"></div>
 
-<button
-  class="arrow"
-  id="previous"
-  aria-label="Previous 3D model">
-  &#8249;
-</button>
+<div id="status">LOADING SPATIAL FRAGMENTS...</div>
 
-<button
-  class="arrow"
-  id="next"
-  aria-label="Next 3D model">
-  &#8250;
-</button>
+<button class="arrow" id="previous" aria-label="Previous 3D model">&#8249;</button>
+<button class="arrow" id="next" aria-label="Next 3D model">&#8250;</button>
 
-<div id="model-counter">
-  01 / 09
-</div>
+<div id="model-counter">01 / 09</div>
 
 <footer>
-
-  <a href="#" onclick="alert('About this spatial fragment.'); return false;">
-    ABOUT
-  </a>
-
-  <a href="#" onclick="alert('Credits: Scaniverse / SuperSplat / Independent Digital Exhibition.'); return false;">
-    CREDITS
-  </a>
-
+  <a href="#" data-info="about">ABOUT</a>
+  <a href="#" data-info="credits">CREDITS</a>
 </footer>
+
+<!-- ANECDOTE READER -->
+<button id="close" aria-label="Retour">&times;</button>
+
+<div id="reader">
+  <div id="reader-inner">
+    <h2 id="r-title"></h2>
+    <div id="r-text"></div>
+  </div>
+</div>
 
 
 <script type="module">
 
 import * as THREE from 'three';
+import { SparkRenderer, SplatMesh } from '@sparkjsdev/spark';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
-import {
-  SparkRenderer,
-  SplatMesh
-} from '@sparkjsdev/spark';
 
-import {
-  GLTFLoader
-} from 'three/addons/loaders/GLTFLoader.js';
+// ==========================================
+// ANECDOTES (1 to 3 per model)
+// Paragraphs are separated by a blank line.
+// ==========================================
+
+const ANECDOTES = {
+
+  'CHAIR': [
+    {
+      title: 'Un fou rire entre deux rames',
+      text: `Étudiant, je prends le métro à 7h30 pour aller en cours. Un samedi, lendemain de soirée. Je n'étais pas frais.
+
+Je m'asseois et je m'endors, la tête contre la vitre. J'ouvre un œil quand la rame s'arrête dans une station et je vois un passager dans le train qui va dans l'autre direction.
+
+Les deux rames sont à l'arrêt et il me fixe. Il commence à sourire, moi aussi parce que je devine que j'ai l'air dévasté.
+
+Nos trains s'éloignent alors qu'on est pris tous deux d'un vrai fou rire.`
+    },
+    {
+      title: 'Le courant qui se coupe avant Nation',
+      text: `L6, juste avant Nation. Quelques stations auparavant, une horde de gamins de maternelle, vraiment tous petits, monte. J'ai 3 ou 4 gamins autour de moi dans le carré, avec une adulte. Systématiquement, juste avant Nation, le courant se coupe une seconde pendant que le train roule. Et là je lis la panique dans les yeux de la petite fille en face de moi.
+
+Je lui fais un sourire pour la rassurer : « T'en fais pas, ça fait toujours ça ici. » L'accompagnatrice acquiesce, ce qui a permis à cette petite fille de rester courageuse le temps d'arriver sur le quai. L'accompagnatrice dit « laissez la dame descendre », et j'ai même eu droit à un au revoir madame d'un gamin.`
+    }
+  ],
+
+  'BESOIN DAIDE': [
+    {
+      title: 'Les mouchoirs et le chocolat',
+      text: `C'était dans le RER D l'année où j'ai emménagé. Je vivais très mal d'être partie de ma campagne, d'être loin de tout et de n'avoir aucun ami, j'étais perdue dans mes études et je venais de rompre. C'était le dimanche et après un week-end avec ma famille je devais rentrer à mon minuscule studio dans une cité pleine de cafards, et là c'est la cata : je fonds en larmes dans le RER. J'étais à bout.
+
+Il y avait une femme assise en face de moi. Elle n'a rien dit, elle a juste sorti un paquet de mouchoirs de son sac et une tablette de chocolat noir, m'a donné les mouchoirs et quelques carrés de chocolat, et soudainement tout allait « mieux ».
+
+Je ne l'ai jamais revue mais quatre ans plus tard je m'en rappelle encore.`
+    },
+    {
+      title: 'La valise, sans un mot',
+      text: `En rentrant de mon île, j'avais 11 heures d'avion de fatigue, 3 sacs d'environ 30 kg en tout, et je descendais les marches du métro un peu à bout.
+
+Un mec s'est mis sans un mot à m'aider à porter ma valise et est reparti toujours sans rien dire. C'est pas grand-chose mais je m'en rappelle quatre ans après.`
+    }
+  ],
+
+  'RAILS': [
+    {
+      title: 'On a raté Châtelet',
+      text: `Un samedi midi, je sortais de la fac à Bures-sur-Yvette, sur le RER B, un peu après Orsay. Le RER est quasi vide. Je m'assieds, et deux gars dorment sur le carré de sièges à côté du mien : deux adolescents d'environ 17-18 ans, dans des positions inconfortables, qui sortent manifestement d'une soirée bien arrosée.
+
+On s'enfonce dans la cambrousse essonnienne, et tout d'un coup on croise un autre RER, qui klaxonne pile à notre hauteur. Je sursaute, mais surtout il réveille un des deux gars. Regard de panique, il réveille son pote : « Putain on s'est endormis, on a raté Châtelet ! »
+
+Ils me demandent où on est et comment retourner à Paris. Je leur indique, ils se calment. Ils avaient traversé l'Île-de-France à moitié bourrés, mais étaient en même temps amusés de leur situation. C'était franchement pas mal drôle à vivre.`
+    },
+    {
+      title: 'Le métro qui rebondit',
+      text: `Mon moment préféré et inoubliable, ce fut le jour de la finale de la coupe du monde en 2018. Je me rendais à un bar pour voir le match avec des amis et je n'étais apparemment pas la seule, la rame étant hyper bondée. Plein de gens maquillés aux couleurs de la France, drapeaux à la main, kazoos... Un joyeux bordel !
+
+Le train quitte le quai et là tout le monde se met à chanter, taper sur les parois et le plafond, et sauter ! Le métro rebondissant littéralement ! Passé les premiers instants où j'ai vraiment pensé que le train allait casser entre deux stations, ce fut un moment incroyable. J'étais même un peu déçue de descendre à ma station.`
+    }
+  ],
+
+  'DOORS': [
+    {
+      title: 'Deux fous et une barre de métro',
+      text: `Je rentrais des Champs-Élysées. Je me mets sagement dans la rame pour lire mon livre, mais au premier arrêt un jeune homme, totalement fou, entre dans la rame et fixe les gens en rigolant très fort. Il se met à lécher la barre du métro sans aucune retenue, ce qui me met très mal à l'aise.
+
+Je décide de changer de rame, deux portes plus loin. Je profite à nouveau de ma lecture, quand tout à coup, après un nouvel arrêt, un DEUXIÈME FOU entre dans ma rame et se met à hurler !!
+
+Le fou n°1 se met donc à hurler aussi... Je décide de sortir prendre le bus. J'ai mis plus d'une heure pour rentrer chez moi ce jour-là.`
+    },
+    {
+      title: 'Tu passeras pas',
+      text: `Je suis debout dans le métro et il y a beaucoup de monde. Un homme rentre et explique qu'il a besoin d'argent parce qu'il dort dehors. Il est très poli, sympathique, et trimballe un grand sac de randonnée. Plusieurs personnes lui donnent de l'argent. Il traverse le wagon mais arrivé au dernier carré, une dame âgée est debout, dans le chemin, et l'empêche de passer.
+
+— Excusez-moi Madame, je voudrais passer.
+— ...
+— Excusez-moi, je voudrais juste passer pour aller au bout, il y a des personnes qui veulent me donner de l'argent.
+— Tu passeras pas.
+— Pardon ?
+— Tu passeras pas, connard. Je bouge pas.
+
+S'ensuit un flot d'insultes des deux, et le monsieur descend à la station suivante. Personne n'a pris la défense de la dame parce que personne n'a compris pourquoi elle refusait de le laisser passer. Je me demande encore pourquoi.`
+    }
+  ],
+
+  'LINES': [
+    {
+      title: 'Le survêt et l’armoire à glace',
+      text: `Je ne sais plus quand ni quelle ligne, mais train à chauffeur. Train chargé sans être bondé, premier wagon juste derrière le pilote. Départ d'une station, sonnerie, et juste avant que les portes se ferment une jeune femme crie « Au voleur, mon portable ! » et j'aperçois un survêt qui court hors de la rame.
+
+Le train ne démarre pas, j'imagine que le chauffeur a vu ce qui se passait. Quelques instants après, une armoire à glace (notez l'opposition avec le survêt) vient ramener son portable à la jeune femme.
+
+Je n'ai pas vu la scène qui a dû se passer sur le quai, mais ça n'a fait qu'activer mon imagination sur la confrontation entre le survêt et l'armoire à glace.`
+    },
+    {
+      title: 'Des slips aux couleurs du plan',
+      text: `J'étais au lycée, j'allais à la piscine pour l'EPS en métro, assez tôt avant l'heure de pointe, tous les passagers avaient l'air endormis.
+
+À une station, deux types entrent en costume et lunettes de soleil (en plein hiver) avec une boombox. Ils se mettent à danser sur de la musique des années 80, et il se trouve qu'ils avaient des pantalons qu'on peut arracher d'un seul coup. Ils les arrachent pour dévoiler de très beaux slips aux couleurs du plan du métro et font du pole dance sur la barre du wagon...
+
+Ils sortent à la station suivante et les passagers étaient tellement médusés qu'ils ont oublié d'applaudir.`
+    }
+  ],
+
+  'WHITE CHAIRS': [
+    {
+      title: 'Je ne regrette rien',
+      text: `Il y a quelques années, je rentrais de soirée avec ma copine de l'époque sur la 6, et un SDF est rentré dans la rame et s'est mis à chanter super bien « Je ne regrette rien ». Je ne sais pas pourquoi mais c'est un moment qui est resté gravé dans ma mémoire comme un moment de grâce.
+
+Première fois où je vois tout le monde qui enlève ses écouteurs et tout le monde qui donne de l'argent à un SDF qui chante.`
+    },
+    {
+      title: 'Un Ave Maria, ligne 2',
+      text: `J'aime beaucoup l'Ave Maria de Schubert. J'étais assis ligne 2 dans un carré, casque sur les oreilles en train d'écouter autre chose, et une femme s'assied à côté de moi, et que n'entonne-t-elle pas ? Un Ave ! Ni une ni deux je coupe la musique pour m'en assurer, j'écoute son chantonnement pendant une station, et forcément je commence à l'accompagner intérieurement.
+
+C'est ma station, je descends en chantonnant, ma voisine capte que je chantonnais la même chose et me regarde comme si je venais d'une autre planète. Un vrai moment de grâce.`
+    }
+  ],
+
+  'SIGN': [
+    {
+      title: 'RAMMSTEIIIIIN !',
+      text: `Ligne 3, dernier métro, et on entend le système de haut-parleurs faire clic. On attend une annonce bien moisie, vu l'heure, mais juste un cri guttural :
+
+« RAMMSTEIIIIIN ! »
+
+C'était tout. La vie continue.
+
+À savoir qu'il n'y avait aucune affiche d'album ou de tournée à l'époque, alors aucune idée d'où c'est sorti.`
+    },
+    {
+      title: 'Les comités des pauvres',
+      text: `J'étais sur la ligne 7 vers Stalingrad ou Crimée et je lisais les Récits de la Kolyma de Varlam Chalamov, un gros bouquin essentiel sur son expérience du goulag.
+
+Je suis plongé dans mon livre et voilà qu'un mec avec une gueule cassée de taulard s'adresse à moi. Il a vu le titre du chapitre que je suis en train de lire : « Les comités des pauvres », et ça l'a interpellé. Il m'explique que c'est bien que je lise ça, que « comité des pauvres » ça lui parle. Je lui ai un peu expliqué de quoi ça parlait, puis il est sorti à la station suivante.
+
+C'est pas grand-chose mais j'ai trouvé ça assez fort : ce visage du métro, représentatif de la misère, est venu s'immiscer dans ces récits parlant de la condition humaine, de ceux qui sont invisibles.`
+    }
+  ],
+
+  'MACHINE': [
+    {
+      title: 'Au boulot, les cloches !',
+      text: `Ligne 8, tôt le matin, jusqu'au terminus vers Créteil. Un monsieur en survêt, plutôt vieux, entre dans la rame, se tient juste devant la porte, et raconte : « Bonjour je m'appelle Michel. » Pause. « J'ai perdu mon emploi et mon domicile. » Pause. « Pourriez-vous m'aider d'une pièce de monnaie ? »
+
+Il parlait tellement bas, la ligne est très bruyante, son attitude tellement modeste, que personne ne bouge. Il traverse la rame doucement, comprenant que personne ne donnera, et d'un coup lâche : « Allez, au boulot les cloches ! »
+
+D'un coup, ça a réveillé la rame, et plusieurs personnes se marraient de ce décalage inattendu ! Par la suite je lui donnais de temps à autre : c'est quand même rare de sourire à 7h30 dans la ligne 8.`
+    },
+    {
+      title: '10 euros pour se taire',
+      text: `Ligne 6, j'étais assise sur un strapontin tout au fond, à côté des portes, dos au wagon. Une dame était assise à côté de moi.
+
+En arrivant à une station, un monsieur avec une guitare s'avance pour sortir par la porte à côté de nous. La dame le regarde, surprise : « Ah c'est bizarre ! Je ne vous ai pas entendu chanter ! » Le monsieur répond : « C'est normal, quelqu'un m'a donné 10 € dès mon arrivée pour que je me taise. »
+
+Je me suis sentie mal pour le monsieur. Il sort et passe dans le wagon d'à côté, on le voit à travers la vitre. Le métro redémarre, on voit le monsieur brandir sa guitare et là on comprend : il ne sait ni chanter, ni jouer de la guitare. C'est pour ça que le mec lui a donné de l'argent pour qu'il arrête.`
+    }
+  ],
+
+  'MAPS': [
+    {
+      title: 'Le regard dans la vitre',
+      text: `Nous n'étions que deux sur un quai désert. Je la remarque, elle est sublime. Je rentre dans la rame, elle me suit puis se tient juste à côté de moi, sur la même barre. Je ne peux pas m'empêcher de la regarder dans le reflet de la vitre, dans lequel je crois la voir me regarder aussi brièvement. Je repense à toutes ces histoires de rencontres impromptues et de coups de foudre entre inconnus... « Mais non mec, tu te fais des films. » Je n'ose pas.
+
+J'arrive à ma station et descends. Les portes se ferment, la rame démarre. « Non non, pas de regrets mec, elle t'a même pas vu. » Je lui jette un dernier regard à travers les fenêtres. Je la trouve retournée vers moi, me fixant du regard, avec un immense sourire aux lèvres, puis elle disparaît dans le tunnel.
+
+Et merde...`
+    },
+    {
+      title: 'Cours, mon amour !',
+      text: `Un jour en sortant de la station Porte de Vanves sur la ligne 13, j'ai vu un groupe d'enfants, genre classe de maternelle, dans les couloirs. Et il y en avait un, tout petit, qui tenait la main de sa maîtresse en trottinant et qui lui a lancé : « Cours, mon amour ! »
+
+J'ai éclaté de rire.`
+    }
+  ]
+
+};
 
 
 // ==========================================
@@ -249,61 +585,15 @@ import {
 // ==========================================
 
 const MODELS = [
-
-  {
-    name: 'CHAIR',
-    type: 'spz',
-    url: 'https://res.cloudinary.com/kramdp60/raw/upload/v1795039239/chais_bb_clean_sqleij.spz'
-  },
-
-   {
-    name: 'BESOIN DAIDE',
-    type: 'spz',
-    url: 'https://res.cloudinary.com/kramdp60/raw/upload/v1795112716/besoin_daideCLEANN_cgyrxi.spz'
-  },
-
-  {
-    name: 'RAILS',
-    type: 'glb',
-    url: 'https://res.cloudinary.com/kramdp60/image/upload/v1795111516/railss_couloirs_vzqxr3.glb'
-  },
-
-  {
-    name: 'DOORS',
-    type: 'glb',
-    url: 'https://res.cloudinary.com/kramdp60/image/upload/v1795112711/portes144_sdbtit.glb'
-  },
-
-  {
-    name: 'LINES',
-    type: 'glb',
-    url: 'https://res.cloudinary.com/kramdp60/image/upload/v1795112712/regles_ligne14_zq1s4p.glb'
-  },
-
-  {
-    name: 'WHITE CHAIRS',
-    type: 'glb',
-    url: 'https://res.cloudinary.com/kramdp60/image/upload/v1795112713/chaises_blanches_nhba9p.glb'
-  },
-
-  {
-    name: 'SIGN',
-    type: 'glb',
-    url: 'https://res.cloudinary.com/kramdp60/image/upload/v1795112714/panneau_mirosl_binza8.glb'
-  },
-
-  {
-    name: 'MACHINE',
-    type: 'glb',
-    url: 'https://res.cloudinary.com/kramdp60/image/upload/v1795112715/machine_st_laz_tgnhqf.glb'
-  },
-
-  {
-    name: 'MAPS',
-    type: 'glb',
-    url: 'https://res.cloudinary.com/kramdp60/image/upload/v1795112718/maps_eqnvdl.glb'
-  }
-
+  { name: 'CHAIR', type: 'spz', url: 'https://res.cloudinary.com/kramdp60/raw/upload/v1795039239/chais_bb_clean_sqleij.spz' },
+  { name: 'BESOIN DAIDE', type: 'spz', url: 'https://res.cloudinary.com/kramdp60/raw/upload/v1795112716/besoin_daideCLEANN_cgyrxi.spz' },
+  { name: 'RAILS', type: 'glb', url: 'https://res.cloudinary.com/kramdp60/image/upload/v1795111516/railss_couloirs_vzqxr3.glb' },
+  { name: 'DOORS', type: 'glb', url: 'https://res.cloudinary.com/kramdp60/image/upload/v1795112711/portes144_sdbtit.glb' },
+  { name: 'LINES', type: 'glb', url: 'https://res.cloudinary.com/kramdp60/image/upload/v1795112712/regles_ligne14_zq1s4p.glb' },
+  { name: 'WHITE CHAIRS', type: 'glb', url: 'https://res.cloudinary.com/kramdp60/image/upload/v1795112713/chaises_blanches_nhba9p.glb' },
+  { name: 'SIGN', type: 'glb', url: 'https://res.cloudinary.com/kramdp60/image/upload/v1795112714/panneau_mirosl_binza8.glb' },
+  { name: 'MACHINE', type: 'glb', url: 'https://res.cloudinary.com/kramdp60/image/upload/v1795112715/machine_st_laz_tgnhqf.glb' },
+  { name: 'MAPS', type: 'glb', url: 'https://res.cloudinary.com/kramdp60/image/upload/v1795112718/maps_eqnvdl.glb' }
 ];
 
 
@@ -312,10 +602,13 @@ const MODELS = [
 // ==========================================
 
 const viewer = document.getElementById('viewer');
-
 const status = document.getElementById('status');
-
 const counter = document.getElementById('model-counter');
+const tagsLayer = document.getElementById('tags');
+const reader = document.getElementById('reader');
+const rTitle = document.getElementById('r-title');
+const rText = document.getElementById('r-text');
+const closeBtn = document.getElementById('close');
 
 
 // ==========================================
@@ -323,16 +616,157 @@ const counter = document.getElementById('model-counter');
 // ==========================================
 
 let currentIndex = 0;
-
 let activePivot = null;
-
 let dragging = false;
-
+let hoveringTag = false;
 let previousX = 0;
 
 const pivots = [];
-
 const distances = [];
+const sizes = [];
+const tagGroups = [];   // per model: [{ el, anchor, side }]
+
+
+// ==========================================
+// ANECDOTE READER
+// ==========================================
+
+let lastTitleRect = null;
+
+function openAnecdote(anecdote, titleEl) {
+
+  lastTitleRect = titleEl.getBoundingClientRect();
+
+  rTitle.style.display = '';
+  rText.classList.remove('info');
+  rTitle.textContent = anecdote.title;
+  rText.innerHTML = anecdote.text
+    .split(/\n\s*\n/)
+    .map(p => '<p>' + p.replace(/\n/g, '<br>') + '</p>')
+    .join('');
+  rText.classList.remove('show');
+  reader.scrollTop = 0;
+
+  reader.classList.add('open');
+
+  // Place the reader title exactly over the clicked title
+  const finalRect = rTitle.getBoundingClientRect();
+  rTitle.classList.remove('moving');
+  rTitle.style.transform =
+    'translate(' + (lastTitleRect.left - finalRect.left) + 'px,' +
+    (lastTitleRect.top - finalRect.top) + 'px)';
+  void rTitle.offsetWidth;
+
+  // Site fades out, title travels up
+  document.body.classList.add('reading');
+
+  setTimeout(() => {
+    rTitle.classList.add('moving');
+    rTitle.style.transform = 'translate(0,0)';
+  }, 500);
+
+  setTimeout(() => {
+    rText.classList.add('show');
+    closeBtn.classList.add('show');
+  }, 1300);
+
+}
+
+function closeAnecdote() {
+
+  closeBtn.classList.remove('show');
+  rText.classList.remove('show');
+  rTitle.style.transition = 'opacity 0.5s ease';
+  rTitle.style.opacity = '0';
+
+  setTimeout(() => {
+
+    reader.classList.remove('open');
+    rTitle.style.transition = '';
+    rTitle.style.opacity = '';
+    rTitle.style.transform = '';
+    document.body.classList.remove('reading');
+
+  }, 550);
+
+}
+
+// ==========================================
+// ABOUT / CREDITS (same reader, no title)
+// ==========================================
+
+const INFO = {
+
+  about: `Projet inspiré de [X] et [Y] sur l'intimité. Je voulais l'amener dans le métro : j'ai donc scanné le métro et trouvé des anecdotes d'internautes sur Reddit pour consolider cette page.`,
+
+  credits: `Projet réalisé dans le cadre du cours de code et interactivité de ma 3ème année de licence à l'ENSAD, avec les professeurs Françoise et Benoît.`
+
+};
+
+let infoKey = null;
+
+function showInfo(key) {
+
+  if (infoKey === key) { closeInfo(); return; }
+
+  const first = infoKey === null;
+  infoKey = key;
+
+  document.querySelectorAll('footer a').forEach(a => {
+    a.classList.toggle('active', a.dataset.info === key);
+  });
+
+  document.body.classList.add('info');
+  rText.classList.remove('show');
+
+  setTimeout(() => {
+
+    rTitle.style.display = 'none';
+    rText.classList.add('info');
+    rText.innerHTML = '<p>' + INFO[key] + '</p>';
+    reader.scrollTop = 0;
+    reader.classList.add('open');
+    void rText.offsetWidth;
+    rText.classList.add('show');
+    closeBtn.classList.add('show');
+
+  }, first ? 700 : 500);
+
+}
+
+function closeInfo() {
+
+  infoKey = null;
+  closeBtn.classList.remove('show');
+  rText.classList.remove('show');
+  document.querySelectorAll('footer a').forEach(a => a.classList.remove('active'));
+  document.body.classList.remove('info');
+
+  setTimeout(() => {
+    if (infoKey !== null) return;
+    reader.classList.remove('open');
+    rTitle.style.display = '';
+    rText.classList.remove('info');
+  }, 700);
+
+}
+
+document.querySelectorAll('footer a').forEach(a => {
+  a.addEventListener('click', (e) => {
+    e.preventDefault();
+    showInfo(a.dataset.info);
+  });
+});
+
+closeBtn.addEventListener('click', () => {
+  if (infoKey) closeInfo(); else closeAnecdote();
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape') return;
+  if (infoKey) closeInfo();
+  else if (reader.classList.contains('open')) closeAnecdote();
+});
 
 
 // ==========================================
@@ -345,15 +779,8 @@ async function start() {
 
     status.textContent = 'INITIALIZING...';
 
-
-    // SCENE
-
     const scene = new THREE.Scene();
-
     scene.background = new THREE.Color(0x000000);
-
-
-    // CAMERA
 
     const camera = new THREE.PerspectiveCamera(
       45,
@@ -362,59 +789,22 @@ async function start() {
       10000
     );
 
-
-    // RENDERER
-
-    const renderer = new THREE.WebGLRenderer({
-      antialias: false
-    });
-
-    renderer.setPixelRatio(
-      Math.min(window.devicePixelRatio, 2)
-    );
-
-    renderer.setSize(
-      viewer.clientWidth,
-      viewer.clientHeight
-    );
-
+    const renderer = new THREE.WebGLRenderer({ antialias: false });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(viewer.clientWidth, viewer.clientHeight);
     renderer.outputColorSpace = THREE.SRGBColorSpace;
-
     viewer.appendChild(renderer.domElement);
 
+    scene.add(new THREE.HemisphereLight(0xffffff, 0x444444, 2));
 
-    // LIGHTING FOR GLB
-
-    const ambientLight = new THREE.HemisphereLight(
-      0xffffff,
-      0x444444,
-      2
-    );
-
-    scene.add(ambientLight);
-
-    const directionalLight = new THREE.DirectionalLight(
-      0xffffff,
-      2
-    );
-
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 2);
     directionalLight.position.set(5, 10, 7);
-
     scene.add(directionalLight);
-
-
-    // SPARK
 
     status.textContent = 'INITIALIZING SPARK...';
 
-    const spark = new SparkRenderer({
-      renderer: renderer
-    });
-
+    const spark = new SparkRenderer({ renderer: renderer });
     scene.add(spark);
-
-
-    // GLB LOADER
 
     const gltfLoader = new GLTFLoader();
 
@@ -432,165 +822,133 @@ async function start() {
         String(MODELS.length).padStart(2, '0');
 
       let object;
-
       let center;
-
       let size;
-
-
-      // ==================================
-      // SPZ MODELS
-      // ==================================
 
       if (config.type === 'spz') {
 
-        object = new SplatMesh({
-          url: config.url
-        });
-
+        object = new SplatMesh({ url: config.url });
         scene.add(object);
-
         await object.initialized;
 
-        // ORIGINAL SPARK BOUNDING BOX
-
         const bounds = object.getBoundingBox();
-
-        center = bounds.getCenter(
-          new THREE.Vector3()
-        );
-
-        size = bounds.getSize(
-          new THREE.Vector3()
-        );
-
-        // CREATE PIVOT
+        center = bounds.getCenter(new THREE.Vector3());
+        size = bounds.getSize(new THREE.Vector3());
 
         const pivot = new THREE.Group();
-
         scene.add(pivot);
 
-        // ORIGINAL WORKING CENTERING METHOD
-
-        object.position.set(
-          -center.x,
-          -center.y,
-          -center.z
-        );
-
+        object.position.set(-center.x, -center.y, -center.z);
         pivot.add(object);
-
         pivot.position.set(0, 0, 0);
 
         pivots.push(pivot);
 
       }
 
+      else if (config.type === 'glb') {
 
-      // ==================================
-      // GLB MODELS
-      // ==================================
+        const gltf = await gltfLoader.loadAsync(config.url);
+        object = gltf.scene;
 
-     
-else if (config.type === 'glb') {
+        object.updateMatrixWorld(true);
 
-  const gltf = await gltfLoader.loadAsync(config.url);
+        const bounds = new THREE.Box3().setFromObject(object);
+        center = bounds.getCenter(new THREE.Vector3());
+        size = bounds.getSize(new THREE.Vector3());
 
-  object = gltf.scene;
+        const pivot = new THREE.Group();
+        scene.add(pivot);
 
-  // UPDATE ORIGINAL TRANSFORMS
-  object.updateMatrixWorld(true);
+        const worldPosition = new THREE.Vector3();
+        const worldQuaternion = new THREE.Quaternion();
+        const worldScale = new THREE.Vector3();
 
-  // GET ACTUAL WORLD BOUNDS
-  const bounds = new THREE.Box3().setFromObject(object);
+        object.matrixWorld.decompose(worldPosition, worldQuaternion, worldScale);
 
-  center = bounds.getCenter(new THREE.Vector3());
+        object.removeFromParent();
+        pivot.add(object);
 
-  size = bounds.getSize(new THREE.Vector3());
+        object.position.set(
+          worldPosition.x - center.x,
+          worldPosition.y - center.y,
+          worldPosition.z - center.z
+        );
 
-  // CREATE PIVOT AT THE WORLD ORIGIN
-  const pivot = new THREE.Group();
+        object.quaternion.copy(worldQuaternion);
+        object.scale.copy(worldScale);
 
-  scene.add(pivot);
+        pivot.position.set(0, 0, 0);
+        pivots.push(pivot);
 
-  // PRESERVE THE MODEL'S WORLD TRANSFORM
-  const worldPosition = new THREE.Vector3();
-  const worldQuaternion = new THREE.Quaternion();
-  const worldScale = new THREE.Vector3();
+      }
 
-  object.matrixWorld.decompose(
-    worldPosition,
-    worldQuaternion,
-    worldScale
-  );
+      // CAMERA DISTANCE
 
-  // DETACH FROM ORIGINAL PARENT
-  object.removeFromParent();
-
-  // ADD TO CENTERED PIVOT
-  pivot.add(object);
-
-  // APPLY CENTER CORRECTION
-  object.position.set(
-    worldPosition.x - center.x,
-    worldPosition.y - center.y,
-    worldPosition.z - center.z
-  );
-
-  object.quaternion.copy(worldQuaternion);
-  object.scale.copy(worldScale);
-
-  pivot.position.set(0, 0, 0);
-
-  // STORE PIVOT
-  pivots.push(pivot);
-
-}
-
-      // ==================================
-      // MOBILE-FRIENDLY CAMERA DISTANCE
-      // ==================================
-
-      const maxDimension = Math.max(
-        size.x,
-        size.y,
-        size.z
-      );
-
-      const verticalFOV = THREE.MathUtils.degToRad(
-        camera.fov
-      );
-
-      const horizontalFOV = 2 * Math.atan(
-        Math.tan(verticalFOV / 2) * camera.aspect
-      );
-
-      const limitingFOV = Math.min(
-        verticalFOV,
-        horizontalFOV
-      );
+      const maxDimension = Math.max(size.x, size.y, size.z);
+      const verticalFOV = THREE.MathUtils.degToRad(camera.fov);
+      const horizontalFOV = 2 * Math.atan(Math.tan(verticalFOV / 2) * camera.aspect);
+      const limitingFOV = Math.min(verticalFOV, horizontalFOV);
 
       const distance = Math.max(
-        maxDimension /
-        (2 * Math.tan(limitingFOV / 2)) * 1.5,
+        maxDimension / (2 * Math.tan(limitingFOV / 2)) * 1.5,
         1
       );
 
       distances.push(distance);
+      sizes.push(size.clone());
+
+      const pivot = pivots[pivots.length - 1];
+      pivot.visible = false;
 
 
-      // HIDE UNTIL SELECTED
+      // ==================================
+      // ANECDOTE TAGS ATTACHED TO THE MODEL
+      // ==================================
 
-      pivots[pivots.length - 1].visible = false;
+      const list = ANECDOTES[config.name] || [];
 
+      // anchors sit just outside the model, as a fraction of its size:
+      // [x, y, goes down?, text on the left?]  1st above, 2nd below, 3rd above
+      const spots = [
+        [-0.22,  0.58, false, false],
+        [ 0.22, -0.58, true,  true ],
+        [ 0.30,  0.72, false, true ]
+      ];
 
-      console.log(
-        'MODEL CENTERED:',
-        config.name,
-        center,
-        size,
-        distance
-      );
+      const group = list.slice(0, 3).map((anecdote, k) => {
+
+        const anchor = new THREE.Object3D();
+
+        anchor.position.set(
+          spots[k][0] * size.x,
+          spots[k][1] * size.y,
+          0
+        );
+
+        pivot.add(anchor);
+
+        const el = document.createElement('div');
+        el.className = 'tag' + (spots[k][2] ? ' down' : '') + (spots[k][3] ? ' left' : '');
+        el.innerHTML =
+          '<i class="dot"></i><i class="diag"></i><div class="title"></div>';
+
+        const titleEl = el.querySelector('.title');
+        titleEl.textContent = anecdote.title;
+
+        titleEl.addEventListener('click', () => openAnecdote(anecdote, titleEl));
+        titleEl.addEventListener('pointerenter', () => { hoveringTag = true; });
+        titleEl.addEventListener('pointerleave', () => { hoveringTag = false; });
+
+        tagsLayer.appendChild(el);
+
+        return { el, anchor };
+
+      });
+
+      tagGroups.push(group);
+
+      console.log('MODEL CENTERED:', config.name, center, size, distance);
 
     }
 
@@ -599,17 +957,8 @@ else if (config.type === 'glb') {
     // LOAD ALL MODELS
     // ======================================
 
-    for (
-      let i = 0;
-      i < MODELS.length;
-      i++
-    ) {
-
-      await loadModel(
-        MODELS[i],
-        i
-      );
-
+    for (let i = 0; i < MODELS.length; i++) {
+      await loadModel(MODELS[i], i);
     }
 
 
@@ -619,75 +968,32 @@ else if (config.type === 'glb') {
 
     function showModel(index) {
 
-      currentIndex =
-        (index + MODELS.length) % MODELS.length;
-
-      // HIDE OTHER MODELS
+      currentIndex = (index + MODELS.length) % MODELS.length;
 
       pivots.forEach((pivot, i) => {
-
         pivot.visible = i === currentIndex;
-
       });
 
-      // ACTIVE MODEL
+      tagGroups.forEach((group, i) => {
+        group.forEach(t => t.el.classList.toggle('on', i === currentIndex));
+      });
 
+      hoveringTag = false;
       activePivot = pivots[currentIndex];
 
-      // CAMERA
-
-      camera.position.set(
-        0,
-        0,
-        distances[currentIndex]
-      );
-
+      camera.position.set(0, 0, distances[currentIndex]);
       camera.lookAt(0, 0, 0);
-
       camera.updateProjectionMatrix();
-
-      // COUNTER
 
       counter.textContent =
         String(currentIndex + 1).padStart(2, '0') +
         ' / ' +
         String(MODELS.length).padStart(2, '0');
 
-      console.log(
-        'CURRENT MODEL:',
-        MODELS[currentIndex].name
-      );
-
     }
 
-
-    // ======================================
-    // PREVIOUS MODEL
-    // ======================================
-
-    document
-      .getElementById('previous')
-      .addEventListener('click', () => {
-
-        showModel(currentIndex - 1);
-
-      });
-
-
-    // ======================================
-    // NEXT MODEL
-    // ======================================
-
-    document
-      .getElementById('next')
-      .addEventListener('click', () => {
-
-        showModel(currentIndex + 1);
-
-      });
-
-
-    // FIRST MODEL
+    document.getElementById('previous').addEventListener('click', () => showModel(currentIndex - 1));
+    document.getElementById('next').addEventListener('click', () => showModel(currentIndex + 1));
 
     showModel(0);
 
@@ -699,60 +1005,65 @@ else if (config.type === 'glb') {
     const canvas = renderer.domElement;
 
     canvas.addEventListener('pointerdown', (e) => {
-
       dragging = true;
-
       previousX = e.clientX;
-
       canvas.setPointerCapture(e.pointerId);
-
     });
 
-    canvas.addEventListener('pointerup', () => {
-
-      dragging = false;
-
-    });
-
-    canvas.addEventListener('pointercancel', () => {
-
-      dragging = false;
-
-    });
+    canvas.addEventListener('pointerup', () => { dragging = false; });
+    canvas.addEventListener('pointercancel', () => { dragging = false; });
 
     canvas.addEventListener('pointermove', (e) => {
-
       if (!dragging || !activePivot) return;
-
-      const delta = e.clientX - previousX;
-
-      activePivot.rotation.y += delta * 0.005;
-
+      activePivot.rotation.y += (e.clientX - previousX) * 0.005;
       previousX = e.clientX;
-
     });
-
-
-    // ======================================
-    // HIDE LOADING
-    // ======================================
 
     status.style.display = 'none';
 
 
     // ======================================
-    // AUTOMATIC ROTATION
+    // TAG POSITIONING (follows the model)
+    // ======================================
+
+    const tmp = new THREE.Vector3();
+
+    function updateTags() {
+
+      const group = tagGroups[currentIndex];
+      if (!group) return;
+
+      const w = viewer.clientWidth;
+      const h = viewer.clientHeight;
+
+      group.forEach(t => {
+
+        t.anchor.getWorldPosition(tmp);
+        tmp.project(camera);
+
+        const x = (tmp.x * 0.5 + 0.5) * w;
+        const y = (-tmp.y * 0.5 + 0.5) * h;
+
+        t.el.style.transform = 'translate(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px)';
+
+      });
+
+    }
+
+
+    // ======================================
+    // ANIMATION LOOP
     // ======================================
 
     renderer.setAnimationLoop(() => {
 
-      if (!dragging && activePivot) {
-
+      // model pauses while a title is hovered, so it is easy to click
+      if (!dragging && !hoveringTag && activePivot) {
         activePivot.rotation.y += 0.0015;
-
       }
 
       renderer.render(scene, camera);
+      updateTags();
 
     });
 
@@ -764,43 +1075,27 @@ else if (config.type === 'glb') {
     window.addEventListener('resize', () => {
 
       const width = viewer.clientWidth;
-
       const height = viewer.clientHeight;
 
       camera.aspect = width / height;
-
       camera.updateProjectionMatrix();
-
-      renderer.setSize(
-        width,
-        height
-      );
+      renderer.setSize(width, height);
 
     });
 
-
     console.log('ALL MODELS LOADED SUCCESSFULLY');
-
 
   }
 
   catch (error) {
 
     console.error('MODEL ERROR:', error);
-
     status.style.display = 'block';
-
-    status.textContent =
-      'MODEL FAILED: ' + error.message;
+    status.textContent = 'MODEL FAILED: ' + error.message;
 
   }
 
 }
-
-
-// ==========================================
-// RUN
-// ==========================================
 
 start();
 
@@ -808,4 +1103,3 @@ start();
 
 </body>
 </html>
-F
